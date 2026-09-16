@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RankTracker Pro - JEE & CET Task Manager</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  
+  <!-- Google Fonts & Lucide Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    .glass-card {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .active-jee {
+      background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);
+      box-shadow: 0 4px 20px -2px rgba(249, 115, 22, 0.4);
+      color: white;
+    }
+    .active-cet {
+      background: linear-gradient(135deg, #06b6d4 0%, #0284c7 100%);
+      box-shadow: 0 4px 20px -2px rgba(6, 182, 212, 0.4);
+      color: white;
+    }
+  </style>
+</head>
+
+<body class="bg-slate-950 text-slate-100 min-h-screen selection:bg-cyan-500 selection:text-white p-4 md:p-8">
+
+  <!-- Header Section -->
+  <header class="max-w-4xl mx-auto flex flex-col md:flex-row justify-between items-center mb-8 gap-4 border-b border-slate-800/80 pb-6">
+    <div>
+      <div class="flex items-center gap-2">
+        <span class="p-2 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-cyan-400">
+          <i data-lucide="zap" class="w-6 h-6"></i>
+        </span>
+        <h1 class="text-3xl font-extrabold bg-gradient-to-r from-cyan-400 via-sky-400 to-indigo-400 bg-clip-text text-transparent">
+          RankTracker Pro
+        </h1>
+      </div>
+      <p class="text-slate-400 text-xs md:text-sm mt-1">Dedicated Goal Engine for JEE & MHT-CET Aspirants</p>
+    </div>
+
+    <!-- Mode Selector -->
+    <div class="flex bg-slate-900/90 p-1.5 rounded-2xl border border-slate-800">
+      <button id="jee-btn" onclick="switchExam('JEE')" class="px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-jee">
+        <i data-lucide="flame" class="w-4 h-4"></i> JEE Main / Adv
+      </button>
+      <button id="cet-btn" onclick="switchExam('CET')" class="px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white">
+        <i data-lucide="target" class="w-4 h-4"></i> MHT-CET
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-6">
+
+    <!-- Left Column: Stats & Add Task Form -->
+    <div class="space-y-6">
+      
+      <!-- Progress Analytics -->
+      <div class="glass-card p-5 rounded-3xl">
+        <div class="flex items-center justify-between mb-3">
+          <span class="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+            <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyan-400"></i>
+            <span id="progress-title">JEE Target Progress</span>
+          </span>
+          <span id="progress-percent" class="text-xl font-extrabold text-cyan-400">0%</span>
+        </div>
+        <div class="w-full bg-slate-800/80 h-3 rounded-full overflow-hidden p-0.5 border border-slate-700/50">
+          <div id="progress-bar" class="bg-gradient-to-r from-cyan-400 via-sky-500 to-indigo-500 h-full rounded-full transition-all duration-500 w-0"></div>
+        </div>
+        <p id="progress-count" class="text-xs text-slate-500 mt-3 font-medium">0 of 0 tasks completed</p>
+      </div>
+
+      <!-- Add Goal Form -->
+      <div class="glass-card p-5 rounded-3xl">
+        <h3 class="text-sm font-bold mb-4 text-slate-200 flex items-center gap-2 border-b border-slate-800 pb-3">
+          <i data-lucide="plus-circle" class="w-4 h-4 text-indigo-400"></i> Add New Task
+        </h3>
+        <form id="task-form" onsubmit="handleAddTask(event)" class="space-y-4">
+          <div>
+            <label class="text-xs text-slate-400 mb-1 block font-medium">Task Description</label>
+            <input 
+              type="text" 
+              id="task-title" 
+              placeholder="e.g. Solve 50 Rotational Motion MCQs..."
+              required
+              class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-cyan-500 text-slate-200 placeholder:text-slate-600 transition"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="text-xs text-slate-400 mb-1 block font-medium">Subject</label>
+              <select id="task-subject" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500 text-slate-300">
+                <option value="Physics">Physics</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Maths">Maths</option>
+                <option value="Biology">Biology</option>
+              </select>
+            </div>
+
+            <div>
+              <label class="text-xs text-slate-400 mb-1 block font-medium">Priority</label>
+              <select id="task-priority" class="w-full bg-slate-950/80 border border-slate-800 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-cyan-500 text-slate-300">
+                <option value="High">High (Imp)</option>
+                <option value="Medium" selected>Medium</option>
+                <option value="Low">Low</option>
+              </select>
+            </div>
+          </div>
+
+          <button 
+            type="submit" 
+            class="w-full bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-500 hover:to-cyan-500 text-white font-bold py-2.5 rounded-xl text-sm transition-all duration-300 shadow-lg shadow-indigo-600/20 flex items-center justify-center gap-2"
+          >
+            <i data-lucide="plus" class="w-4 h-4"></i> Add Goal
+          </button>
+        </form>
+      </div>
+
+    </div>
+
+    <!-- Right Column: Task List & Filters -->
+    <div class="md:col-span-2 space-y-4">
+      
+      <!-- Filter Bar -->
+      <div class="glass-card p-3 rounded-2xl flex items-center justify-between">
+        <span class="text-xs text-slate-400 font-semibold flex items-center gap-1.5 pl-2">
+          <i data-lucide="filter" class="w-3.5 h-3.5 text-cyan-400"></i> Subject Filter:
+        </span>
+        <div class="flex gap-1" id="subject-filters">
+          <button onclick="filterSubject('All')" class="filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-cyan-400 border border-slate-700 transition">All</button>
+          <button onclick="filterSubject('Physics')" class="filter-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Physics</button>
+          <button onclick="filterSubject('Chemistry')" class="filter-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Chemistry</button>
+          <button onclick="filterSubject('Maths')" class="filter-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">Maths</button>
+        </div>
+      </div>
+
+      <!-- Task Items List -->
+      <div id="tasks-container" class="space-y-3">
+        <!-- Javascript dynamic rendering will happen here -->
+      </div>
+
+    </div>
+
+  </main>
+
+  <script>
+    // App State Management
+    let currentExam = 'JEE';
+    let currentSubjectFilter = 'All';
+    
+    // Default Tasks Setup (Fetched from LocalStorage or Default Array)
+    let tasks = JSON.parse(localStorage.getItem('ranktracker_tasks')) || [
+      { id: 1, title: 'Solve 30 PYQs of Rotational Motion', exam: 'JEE', subject: 'Physics', priority: 'High', completed: false },
+      { id: 2, title: 'Revise Periodic Table Trends & Notes', exam: 'JEE', subject: 'Chemistry', priority: 'Medium', completed: true },
+      { id: 3, title: 'Attempt MHT-CET Full Length Mock Test 1', exam: 'CET', subject: 'Maths', priority: 'High', completed: false }
+    ];
+
+    // Save to LocalStorage
+    function saveTasks() {
+      localStorage.setItem('ranktracker_tasks', JSON.stringify(tasks));
+      renderTasks();
+    }
+
+    // Exam Switcher Functionality
+    function switchExam(exam) {
+      currentExam = exam;
+      const jeeBtn = document.getElementById('jee-btn');
+      const cetBtn = document.getElementById('cet-btn');
+
+      if (exam === 'JEE') {
+        jeeBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-jee";
+        cetBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
+      } else {
+        cetBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-cet";
+        jeeBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
+      }
+
+      document.getElementById('progress-title').innerText = `${exam} Target Progress`;
+      renderTasks();
+    }
+
+    // Subject Filter Switcher
+    function filterSubject(subject) {
+      currentSubjectFilter = subject;
+      const buttons = document.querySelectorAll('.filter-btn');
+      buttons.forEach(btn => {
+        if (btn.innerText === subject) {
+          btn.className = "filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-cyan-400 border border-slate-700 transition";
+        } else {
+          btn.className = "filter-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+        }
+      });
+      renderTasks();
+    }
+
+    // Add Task Handler
+    function handleAddTask(event) {
+      event.preventDefault();
+      const titleInput = document.getElementById('task-title');
+      const subjectSelect = document.getElementById('task-subject');
+      const prioritySelect = document.getElementById('task-priority');
+
+      const newTask = {
+        id: Date.now(),
+        title: titleInput.value,
+        exam: currentExam,
+        subject: subjectSelect.value,
+        priority: prioritySelect.value,
+        completed: false
+      };
+
+      tasks.unshift(newTask);
+      titleInput.value = '';
+      saveTasks();
+    }
+
+    // Toggle Task Status
+    function toggleTask(id) {
+      tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+      saveTasks();
+    }
+
+    // Delete Task
+    function deleteTask(id) {
+      tasks = tasks.filter(t => t.id !== id);
+      saveTasks();
+    }
+
+    // Render Logic for Tasks & Analytics
+    function renderTasks() {
+      const container = document.getElementById('tasks-container');
+      
+      // Filtering tasks
+      const filtered = tasks.filter(t => {
+        const examMatch = t.exam === currentExam;
+        const subjectMatch = currentSubjectFilter === 'All' || t.subject === currentSubjectFilter;
+        return examMatch && subjectMatch;
+      });
+
+      // Update Analytics
+      const completedCount = filtered.filter(t => t.completed).length;
+      const percent = filtered.length ? Math.round((completedCount / filtered.length) * 100) : 0;
+      
+      document.getElementById('progress-percent').innerText = `${percent}%`;
+      document.getElementById('progress-bar').style.width = `${percent}%`;
+      document.getElementById('progress-count').innerText = `${completedCount} of ${filtered.length} tasks completed`;
+
+      // Render Empty State
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="glass-card rounded-2xl p-8 text-center text-slate-500 border-dashed">
+            <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+            <p class="text-xs font-medium">No tasks found for ${currentExam} (${currentSubjectFilter}).</p>
+          </div>
+        `;
+        lucide.createIcons();
+        return;
+      }
+
+      // Render Task Cards
+      container.innerHTML = filtered.map(t => `
+        <div class="glass-card p-4 rounded-2xl flex items-center justify-between border transition-all duration-200 ${
+          t.completed ? 'opacity-50 bg-slate-900/40' : 'hover:border-slate-700'
+        }">
+          <div class="flex items-center gap-3">
+            <button onclick="toggleTask(${t.id})" class="text-slate-400 hover:text-cyan-400 transition">
+              <i data-lucide="${t.completed ? 'check-circle-2' : 'circle'}" class="w-5 h-5 ${t.completed ? 'text-emerald-400' : ''}"></i>
+            </button>
+            <div>
+              <p class="text-sm font-semibold ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">
+                ${t.title}
+              </p>
+              <div class="flex items-center gap-2 mt-1">
+                <span class="text-[10px] bg-slate-800 text-slate-300 font-semibold px-2.5 py-0.5 rounded-full border border-slate-700/50">
+                  ${t.subject}
+                </span>
+                <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
+                  t.priority === 'High' 
+                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+                }">
+                  ${t.priority} Priority
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+
+      // Refresh Icons
+      lucide.createIcons();
+    }
+
+    // Initial Render
+    renderTasks();
+  </script>
+</body>
+</html>
