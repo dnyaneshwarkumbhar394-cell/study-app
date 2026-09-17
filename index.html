@@ -157,159 +157,179 @@
   </main>
 
   <script>
-    // App State Management
-    let currentExam = 'JEE';
-    let currentSubjectFilter = 'All';
-    
-    // Default Tasks Setup (Fetched from LocalStorage or Default Array)
-    let tasks = JSON.parse(localStorage.getItem('ranktracker_tasks')) || [
-      { id: 1, title: 'Solve 30 PYQs of Rotational Motion', exam: 'JEE', subject: 'Physics', priority: 'High', completed: false },
-      { id: 2, title: 'Revise Periodic Table Trends & Notes', exam: 'JEE', subject: 'Chemistry', priority: 'Medium', completed: true },
-      { id: 3, title: 'Attempt MHT-CET Full Length Mock Test 1', exam: 'CET', subject: 'Maths', priority: 'High', completed: false }
-    ];
+ // App State Management
+let currentExam = 'JEE';
+let currentSubjectFilter = 'All';
 
-    // Save to LocalStorage
-    function saveTasks() {
-      localStorage.setItem('ranktracker_tasks', JSON.stringify(tasks));
-      renderTasks();
+// Storage Key
+const STORAGE_KEY = 'ranktracker_pro_tasks_v1';
+
+// Initial Load with Auto Recovery
+function loadSavedTasks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      return JSON.parse(saved);
     }
+  } catch (e) {
+    console.error("LocalStorage load error:", e);
+  }
+  // Default Tasks if Storage is Empty
+  return [
+    { id: 1, title: 'Solve 30 PYQs of Rotational Motion', exam: 'JEE', subject: 'Physics', priority: 'High', completed: false },
+    { id: 2, title: 'Revise Periodic Table Trends & Notes', exam: 'JEE', subject: 'Chemistry', priority: 'Medium', completed: true },
+    { id: 3, title: 'Attempt MHT-CET Full Length Mock Test 1', exam: 'CET', subject: 'Maths', priority: 'High', completed: false }
+  ];
+}
 
-    // Exam Switcher Functionality
-    function switchExam(exam) {
-      currentExam = exam;
-      const jeeBtn = document.getElementById('jee-btn');
-      const cetBtn = document.getElementById('cet-btn');
+let tasks = loadSavedTasks();
 
-      if (exam === 'JEE') {
-        jeeBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-jee";
-        cetBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
-      } else {
-        cetBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-cet";
-        jeeBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
-      }
+// Permanent Save Function
+function saveTasks() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch (e) {
+    console.error("LocalStorage save error:", e);
+  }
+  renderTasks();
+}
 
-      document.getElementById('progress-title').innerText = `${exam} Target Progress`;
-      renderTasks();
+// Exam Switcher Functionality
+function switchExam(exam) {
+  currentExam = exam;
+  const jeeBtn = document.getElementById('jee-btn');
+  const cetBtn = document.getElementById('cet-btn');
+
+  if (exam === 'JEE') {
+    jeeBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-jee";
+    cetBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
+  } else {
+    cetBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 active-cet";
+    jeeBtn.className = "px-6 py-2.5 rounded-xl font-bold text-sm transition-all duration-300 flex items-center gap-2 text-slate-400 hover:text-white";
+  }
+
+  document.getElementById('progress-title').innerText = `${exam} Target Progress`;
+  renderTasks();
+}
+
+// Subject Filter Switcher
+function filterSubject(subject) {
+  currentSubjectFilter = subject;
+  const buttons = document.querySelectorAll('.filter-btn');
+  buttons.forEach(btn => {
+    if (btn.innerText === subject) {
+      btn.className = "filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-cyan-400 border border-slate-700 transition";
+    } else {
+      btn.className = "filter-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
     }
+  });
+  renderTasks();
+}
 
-    // Subject Filter Switcher
-    function filterSubject(subject) {
-      currentSubjectFilter = subject;
-      const buttons = document.querySelectorAll('.filter-btn');
-      buttons.forEach(btn => {
-        if (btn.innerText === subject) {
-          btn.className = "filter-btn px-3 py-1 rounded-lg text-xs font-semibold bg-slate-800 text-cyan-400 border border-slate-700 transition";
-        } else {
-          btn.className = "filter-btn px-3 py-1 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
-        }
-      });
-      renderTasks();
-    }
+// Add Task Handler
+function handleAddTask(event) {
+  event.preventDefault();
+  const titleInput = document.getElementById('task-title');
+  const subjectSelect = document.getElementById('task-subject');
+  const prioritySelect = document.getElementById('task-priority');
 
-    // Add Task Handler
-    function handleAddTask(event) {
-      event.preventDefault();
-      const titleInput = document.getElementById('task-title');
-      const subjectSelect = document.getElementById('task-subject');
-      const prioritySelect = document.getElementById('task-priority');
+  const newTask = {
+    id: Date.now(),
+    title: titleInput.value.trim(),
+    exam: currentExam,
+    subject: subjectSelect.value,
+    priority: prioritySelect.value,
+    completed: false
+  };
 
-      const newTask = {
-        id: Date.now(),
-        title: titleInput.value,
-        exam: currentExam,
-        subject: subjectSelect.value,
-        priority: prioritySelect.value,
-        completed: false
-      };
+  tasks.unshift(newTask);
+  titleInput.value = '';
+  saveTasks();
+}
 
-      tasks.unshift(newTask);
-      titleInput.value = '';
-      saveTasks();
-    }
+// Toggle Task Status
+function toggleTask(id) {
+  tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
+  saveTasks();
+}
 
-    // Toggle Task Status
-    function toggleTask(id) {
-      tasks = tasks.map(t => t.id === id ? { ...t, completed: !t.completed } : t);
-      saveTasks();
-    }
+// Delete Task
+function deleteTask(id) {
+  tasks = tasks.filter(t => t.id !== id);
+  saveTasks();
+}
 
-    // Delete Task
-    function deleteTask(id) {
-      tasks = tasks.filter(t => t.id !== id);
-      saveTasks();
-    }
+// Render Logic for Tasks & Analytics
+function renderTasks() {
+  const container = document.getElementById('tasks-container');
+  
+  // Filtering tasks
+  const filtered = tasks.filter(t => {
+    const examMatch = t.exam === currentExam;
+    const subjectMatch = currentSubjectFilter === 'All' || t.subject === currentSubjectFilter;
+    return examMatch && subjectMatch;
+  });
 
-    // Render Logic for Tasks & Analytics
-    function renderTasks() {
-      const container = document.getElementById('tasks-container');
-      
-      // Filtering tasks
-      const filtered = tasks.filter(t => {
-        const examMatch = t.exam === currentExam;
-        const subjectMatch = currentSubjectFilter === 'All' || t.subject === currentSubjectFilter;
-        return examMatch && subjectMatch;
-      });
+  // Update Analytics
+  const completedCount = filtered.filter(t => t.completed).length;
+  const percent = filtered.length ? Math.round((completedCount / filtered.length) * 100) : 0;
+  
+  document.getElementById('progress-percent').innerText = `${percent}%`;
+  document.getElementById('progress-bar').style.width = `${percent}%`;
+  document.getElementById('progress-count').innerText = `${completedCount} of ${filtered.length} tasks completed`;
 
-      // Update Analytics
-      const completedCount = filtered.filter(t => t.completed).length;
-      const percent = filtered.length ? Math.round((completedCount / filtered.length) * 100) : 0;
-      
-      document.getElementById('progress-percent').innerText = `${percent}%`;
-      document.getElementById('progress-bar').style.width = `${percent}%`;
-      document.getElementById('progress-count').innerText = `${completedCount} of ${filtered.length} tasks completed`;
+  // Render Empty State
+  if (filtered.length === 0) {
+    container.innerHTML = `
+      <div class="glass-card rounded-2xl p-8 text-center text-slate-500 border-dashed">
+        <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
+        <p class="text-xs font-medium">No tasks found for ${currentExam} (${currentSubjectFilter}).</p>
+      </div>
+    `;
+    lucide.createIcons();
+    return;
+  }
 
-      // Render Empty State
-      if (filtered.length === 0) {
-        container.innerHTML = `
-          <div class="glass-card rounded-2xl p-8 text-center text-slate-500 border-dashed">
-            <i data-lucide="book-open" class="w-8 h-8 mx-auto mb-2 opacity-40"></i>
-            <p class="text-xs font-medium">No tasks found for ${currentExam} (${currentSubjectFilter}).</p>
+  // Render Task Cards
+  container.innerHTML = filtered.map(t => `
+    <div class="glass-card p-4 rounded-2xl flex items-center justify-between border transition-all duration-200 ${
+      t.completed ? 'opacity-50 bg-slate-900/40' : 'hover:border-slate-700'
+    }">
+      <div class="flex items-center gap-3">
+        <button onclick="toggleTask(${t.id})" class="text-slate-400 hover:text-cyan-400 transition">
+          <i data-lucide="${t.completed ? 'check-circle-2' : 'circle'}" class="w-5 h-5 ${t.completed ? 'text-emerald-400' : ''}"></i>
+        </button>
+        <div>
+          <p class="text-sm font-semibold ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">
+            ${t.title}
+          </p>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="text-[10px] bg-slate-800 text-slate-300 font-semibold px-2.5 py-0.5 rounded-full border border-slate-700/50">
+              ${t.subject}
+            </span>
+            <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
+              t.priority === 'High' 
+                ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
+                : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
+            }">
+              ${t.priority} Priority
+            </span>
           </div>
-        `;
-        lucide.createIcons();
-        return;
-      }
-
-      // Render Task Cards
-      container.innerHTML = filtered.map(t => `
-        <div class="glass-card p-4 rounded-2xl flex items-center justify-between border transition-all duration-200 ${
-          t.completed ? 'opacity-50 bg-slate-900/40' : 'hover:border-slate-700'
-        }">
-          <div class="flex items-center gap-3">
-            <button onclick="toggleTask(${t.id})" class="text-slate-400 hover:text-cyan-400 transition">
-              <i data-lucide="${t.completed ? 'check-circle-2' : 'circle'}" class="w-5 h-5 ${t.completed ? 'text-emerald-400' : ''}"></i>
-            </button>
-            <div>
-              <p class="text-sm font-semibold ${t.completed ? 'line-through text-slate-500' : 'text-slate-200'}">
-                ${t.title}
-              </p>
-              <div class="flex items-center gap-2 mt-1">
-                <span class="text-[10px] bg-slate-800 text-slate-300 font-semibold px-2.5 py-0.5 rounded-full border border-slate-700/50">
-                  ${t.subject}
-                </span>
-                <span class="text-[10px] font-semibold px-2.5 py-0.5 rounded-full ${
-                  t.priority === 'High' 
-                    ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' 
-                    : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'
-                }">
-                  ${t.priority} Priority
-                </span>
-              </div>
-            </div>
-          </div>
-
-          <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition">
-            <i data-lucide="trash-2" class="w-4 h-4"></i>
-          </button>
         </div>
-      `).join('');
+      </div>
 
-      // Refresh Icons
-      lucide.createIcons();
-    }
+      <button onclick="deleteTask(${t.id})" class="text-slate-500 hover:text-rose-400 p-1.5 rounded-lg transition">
+        <i data-lucide="trash-2" class="w-4 h-4"></i>
+      </button>
+    </div>
+  `).join('');
 
-    // Initial Render
-    renderTasks();
+  // Refresh Icons
+  lucide.createIcons();
+}
+
+// Initial Render
+renderTasks();
   </script>
 </body>
 </html>
